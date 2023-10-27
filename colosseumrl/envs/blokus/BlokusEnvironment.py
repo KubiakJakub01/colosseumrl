@@ -450,6 +450,38 @@ class BlokusEnvironment(BaseEnvironment):
 
         return (new_board, round_count, players), [new_player_num], [reward], terminal, winners
 
+    def get_winners(self, state: object) -> bool:
+        """ Returns the winners of the game if it is over, else None.
+
+        Parameters
+        ----------
+        state : object
+            The current state to check if the game is over.
+
+        Returns
+        -------
+        winners : Union[List[int], None]
+
+        """
+        board, round_count, players = state
+        winners = []
+
+        if not any(p.check_moves(board, round_count) for p in players):
+            max_score = 0
+            scores = []
+
+            for p in players:
+                scores.append((p.player_color, p.player_score))
+                if p.player_score > max_score:
+                    max_score = p.player_score
+
+            for player_color, score in scores:
+                if score == max_score:  # Prints all scores equal to the max score (accounts for ties)
+                    winners.append(COLOR_TO_PLAYER[player_color])
+
+        return winners
+
+
     def valid_actions(self, state: object, player: int) -> List[str]:
         """ Valid actions for a specific state and player.
         If there are no valid actions, empty string is given to represent a no-op
