@@ -167,7 +167,7 @@ class Board:
 
         return valid_shift_offsets
 
-    def get_all_valid_moves(self, round_count, player_color, player_pieces):
+    def get_all_valid_moves(self, round_count, player_color, player_pieces, define_states=False):
         ''' Gathers all valid moves on the board that meet the following criteria:
             - Index of selected piece touches same-colored corner of a piece
             - Player piece does not fall outside of the board
@@ -177,6 +177,9 @@ class Board:
         if round_count == 0:  # If still first round of game..
             # empty_corner_indexes = self.gather_empty_board_corners([(0, 0), (19, 0), (0, 19), (19, 19)])
             empty_corner_indexes = [PLAYER_DEFAULT_CORNERS[player_color-1]]
+            if define_states:
+                # Build all possible states for the game allow all corners to be played
+                empty_corner_indexes = [(x, y) for x in range(20) for y in range(20)]
         else:
             empty_corner_indexes = self.gather_empty_corner_indexes(player_color)
 
