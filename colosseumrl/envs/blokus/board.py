@@ -73,16 +73,32 @@ PLAYER_OBSERVATION_TO_BOARD_ROTATION_MATRICES = np.array([
 ], dtype=np.int32)
 
 class Board:
-    def __init__(self, copy_from_board=None):
+    def __init__(self, copy_from_board=None, track_canonical=True):
+        ''' Initializes board with empty board and canonical board
+        '''
+        self.player_num = len(PLAYER_DEFAULT_CORNERS)
+        self.track_canonical = track_canonical
+        self.current_player = 0
         self.reset_board(copy_from_board)
+
+    @property
+    def canonical_board(self):
+        if self.track_canonical:
+            return self._canonical_board.copy()
+        return None
 
     def reset_board(self, copy_from_board=None):
         ''' Creates empty 2-dimensional 20 by 20 numpy zeros array that represents a clean board
         '''
         if copy_from_board is not None:
             self.board_contents = deepcopy(copy_from_board.board_contents)
+            if self.track_canonical:
+                self._canonical_board = deepcopy(copy_from_board.canonical_board)
         else:
             self.board_contents = np.zeros((20, 20), dtype=np.int64)
+            if self.track_canonical:
+                self._canonical_board = np.zeros((self.player_num*2, 20, 20), dtype=np.int64)
+                self._canonical_board[self.player_num] = 1  # Set first player turn indicator to 1
 
     def update_board(self, player_color, piece_type, index, piece_orientation, round_count, ai_game):
         ''' Takes index point and places piece_type on board
@@ -96,11 +112,18 @@ class Board:
             else:
                 new_x, new_y = comp.rotate_piece(index, offset[0], offset[1], piece_orientation)
                 self.place_piece(new_x, new_y)
+        if self.track_canonical:
+            # Update turn indicator in canonical board
+            # Zeroes out all other player turn indicators
+            self._canonical_board[self.player_num:] = 0
+            self._canonical_board[self.player_num + player_color - 1] = 1
 
     def place_piece(self, x, y):
         ''' Places piece on board by filling board_contents with the current player color
         '''
         self.board_contents[y][x] = self.player_color
+        if self.track_canonical:
+            self._canonical_board[self.player_color - 1][y][x] = 1
 
     # def gather_empty_board_corners(self, corners_coords):
     #     ''' Checks what corners are still available to play in the first round of the game

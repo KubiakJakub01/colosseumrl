@@ -443,14 +443,21 @@ class BlokusEnvironment(BaseEnvironment):
             reward = 0
             terminal = False
 
-        if player_num == 3:
-            round_count += 1
 
-        new_player_num = (player_num + 1) % 4
+        # Return the next player who is still playing
+        # TODO: Check if it is possible for a player to be eliminated in the middle of a round
+        for i in range(player_num + 1, player_num + len(players) + 1):
+            if i == 4:
+                round_count += 1
+
+            new_player_num = i % len(players)
+
+            if players[new_player_num].check_moves(new_board, round_count):
+                break
 
         return (new_board, round_count, players), [new_player_num], [reward], terminal, winners
 
-    def get_winners(self, state: object) -> bool:
+    def get_winners(self, state: object) -> list[int]:
         """ Returns the winners of the game if it is over, else None.
 
         Parameters
